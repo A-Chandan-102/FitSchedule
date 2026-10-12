@@ -70,26 +70,14 @@ export default function ContactTrainer({ currentUser }) {
 
   const validate = () => {
     const errors = {};
-    if (!formData.fullName.trim()) {
-      errors.fullName = 'Full name is required.';
-    } else if (formData.fullName.trim().length < 2) {
-      errors.fullName = 'Full name must be at least 2 characters.';
-    }
-
-    if (!formData.email.trim()) {
-      errors.email = 'Email address is required.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      errors.email = 'Please enter a valid email address.';
-    }
-
-    if (!formData.fitnessGoal.trim()) {
-      errors.fitnessGoal = 'Please select your fitness goal or interest area.';
+    if (!formData.trainerId && !selectedTrainer) {
+      errors.trainerId = 'Please select a coach or trainer from the list.';
     }
 
     if (!formData.message.trim()) {
       errors.message = 'Message or question is required.';
-    } else if (formData.message.trim().length < 10) {
-      errors.message = 'Please provide at least 10 characters detailing your question.';
+    } else if (formData.message.trim().length < 5) {
+      errors.message = 'Please provide at least 5 characters detailing your message.';
     }
 
     return errors;
@@ -363,36 +351,28 @@ export default function ContactTrainer({ currentUser }) {
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* Full Name */}
+            {/* Trainer Selection Dropdown */}
             <div className="form-group">
-              <label className="form-label">Full Name *</label>
-              <input
-                type="text"
+              <label className="form-label">Select Trainer *</label>
+              <select
                 className="form-control"
-                placeholder="e.g. Jordan Miller"
-                value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-              />
-              {fieldErrors.fullName && (
+                value={selectedTrainer ? selectedTrainer.id : ''}
+                onChange={(e) => {
+                  const tId = Number(e.target.value);
+                  const found = trainers.find((t) => t.id === tId) || null;
+                  handleSelectTrainer(found);
+                }}
+              >
+                <option value="">-- Choose a Trainer --</option>
+                {trainers.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name} — {t.specialization} ({t.experienceYears} yrs exp)
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.trainerId && (
                 <div style={{ color: 'var(--accent-rose)', fontSize: '0.8rem', marginTop: '0.3rem' }}>
-                  {fieldErrors.fullName}
-                </div>
-              )}
-            </div>
-
-            {/* Email Address */}
-            <div className="form-group">
-              <label className="form-label">Email Address *</label>
-              <input
-                type="email"
-                className="form-control"
-                placeholder="e.g. jordan.miller@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-              {fieldErrors.email && (
-                <div style={{ color: 'var(--accent-rose)', fontSize: '0.8rem', marginTop: '0.3rem' }}>
-                  {fieldErrors.email}
+                  {fieldErrors.trainerId}
                 </div>
               )}
             </div>

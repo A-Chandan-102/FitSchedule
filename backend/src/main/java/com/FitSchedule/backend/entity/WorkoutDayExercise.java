@@ -31,6 +31,9 @@ public class WorkoutDayExercise {
     @Column(name = "muscle_group", length = 60)
     private String muscleGroup;
 
+    @Column(name = "sub_category", length = 80)
+    private String subCategory;
+
     @Column(nullable = false)
     private Integer sets;
 

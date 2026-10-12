@@ -1,6 +1,7 @@
 import React from 'react';
+import InteractiveBackground from '../components/InteractiveBackground';
 
-export default function Home({ setActiveTab, onSelectPlan, plans = [] }) {
+export default function Home({ setActiveTab, onSelectPlan, plans = [], currentUser }) {
   // Demo schedule days for the landing page preview
   const demoSchedule = [
     { day: 'Mon', type: 'training', title: 'Upper Body Power', focus: 'Chest & Back', sets: '16 sets', duration: '60 min' },
@@ -20,7 +21,11 @@ export default function Home({ setActiveTab, onSelectPlan, plans = [] }) {
         textAlign: 'center',
         position: 'relative',
         backgroundColor: '#f8fafc',
+        overflow: 'hidden',
       }}>
+        {/* Living interactive light-themed canvas */}
+        <InteractiveBackground />
+
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           {/* Tagline Badge */}
           <div style={{ display: 'inline-flex', marginBottom: '1.5rem' }}>
@@ -63,7 +68,13 @@ export default function Home({ setActiveTab, onSelectPlan, plans = [] }) {
           }}>
             <button
               className="btn btn-primary btn-lg"
-              onClick={() => setActiveTab('planner')}
+              onClick={() => {
+                if (!currentUser) {
+                  setActiveTab('login');
+                } else {
+                  setActiveTab('planner');
+                }
+              }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 5v14M5 12h14" />
@@ -90,17 +101,17 @@ export default function Home({ setActiveTab, onSelectPlan, plans = [] }) {
             maxWidth: '820px',
             margin: '0 auto',
           }}>
-            <div className="card" style={{ padding: '1.25rem', backgroundColor: '#ffffff' }}>
+            <div className="card" style={{ padding: '1.25rem', backgroundColor: '#ffffff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
               <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#16a34a' }}>2 – 6 Days</div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Flexible Weekly Splits</div>
             </div>
-            <div className="card" style={{ padding: '1.25rem', backgroundColor: '#ffffff' }}>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0284c7' }}>5 Equipment</div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Gym to Bodyweight</div>
+            <div className="card" style={{ padding: '1.25rem', backgroundColor: '#ffffff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0284c7' }}>4 Expert Coaches</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Certified Trainer Inquiries</div>
             </div>
-            <div className="card" style={{ padding: '1.25rem', backgroundColor: '#ffffff' }}>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#d97706' }}>100% MySQL</div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Persistent CRUD Plans</div>
+            <div className="card" style={{ padding: '1.25rem', backgroundColor: '#ffffff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#d97706' }}>80+ Exercises</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Targeted Muscle Library</div>
             </div>
           </div>
         </div>

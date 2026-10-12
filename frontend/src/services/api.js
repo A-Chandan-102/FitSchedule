@@ -55,6 +55,11 @@ export const authApi = {
     method: 'POST',
     body: JSON.stringify(userData),
   }),
+
+  updateUsername: (email, newUsername) => request('/auth/update-username', {
+    method: 'PUT',
+    body: JSON.stringify({ email, newUsername }),
+  }),
 };
 
 export const workoutApi = {

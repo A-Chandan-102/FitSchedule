@@ -21,22 +21,17 @@ public class TrainerInquiry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Full name is required")
-    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
-    @Column(name = "full_name", nullable = false, length = 100)
+    @Column(name = "full_name", length = 100)
     private String fullName;
 
-    @NotBlank(message = "Email address is required")
-    @Email(message = "Please provide a valid email address")
-    @Column(nullable = false, length = 120)
+    @Column(length = 120)
     private String email;
 
-    @NotBlank(message = "Fitness goal or area of interest is required")
-    @Column(name = "fitness_goal", nullable = false, length = 100)
+    @Column(name = "fitness_goal", length = 100)
     private String fitnessGoal;
 
     @NotBlank(message = "Message or question is required")
-    @Size(min = 10, max = 2000, message = "Message must be between 10 and 2000 characters")
+    @Size(min = 5, max = 2000, message = "Message must be between 5 and 2000 characters")
     @Column(columnDefinition = "TEXT", nullable = false)
     private String message;
 
@@ -60,6 +55,15 @@ public class TrainerInquiry {
         }
         if (this.status == null) {
             this.status = "SUBMITTED";
+        }
+        if (this.fullName == null || this.fullName.trim().isEmpty()) {
+            this.fullName = "Member Client";
+        }
+        if (this.email == null || this.email.trim().isEmpty()) {
+            this.email = "member@fitschedule.com";
+        }
+        if (this.fitnessGoal == null || this.fitnessGoal.trim().isEmpty()) {
+            this.fitnessGoal = "General Consultation";
         }
     }
 }

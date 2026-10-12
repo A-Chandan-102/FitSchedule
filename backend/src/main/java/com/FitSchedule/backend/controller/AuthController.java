@@ -3,6 +3,7 @@ package com.FitSchedule.backend.controller;
 import com.FitSchedule.backend.dto.AuthResponse;
 import com.FitSchedule.backend.dto.LoginRequest;
 import com.FitSchedule.backend.dto.RegisterRequest;
+import com.FitSchedule.backend.dto.UpdateUsernameRequest;
 import com.FitSchedule.backend.entity.Trainer;
 import com.FitSchedule.backend.entity.User;
 import com.FitSchedule.backend.exception.BadRequestException;
@@ -95,5 +96,36 @@ public class AuthController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/update-username")
+    public ResponseEntity<AuthResponse> updateUsername(@Valid @RequestBody UpdateUsernameRequest request) {
+        User user = userRepository.findByEmailIgnoreCase(request.getEmail())
+                .orElseThrow(() -> new BadRequestException("User not found with email: " + request.getEmail()));
+
+        user.setFullName(request.getNewUsername().trim());
+        User saved = userRepository.save(user);
+
+        // If trainer, keep Trainer entity name synchronized
+        if ("TRAINER".equalsIgnoreCase(saved.getRole())) {
+            trainerRepository.findByEmailIgnoreCase(saved.getEmail()).ifPresent(trainer -> {
+                trainer.setName(saved.getFullName());
+                trainerRepository.save(trainer);
+            });
+        }
+
+        String token = "FS-" + UUID.randomUUID().toString();
+
+        AuthResponse response = AuthResponse.builder()
+                .id(saved.getId())
+                .fullName(saved.getFullName())
+                .email(saved.getEmail())
+                .role(saved.getRole())
+                .specialization(saved.getSpecialization())
+                .token(token)
+                .message("Username successfully updated")
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 }

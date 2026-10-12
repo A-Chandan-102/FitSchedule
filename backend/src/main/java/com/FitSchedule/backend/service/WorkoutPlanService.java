@@ -6,6 +6,7 @@ import com.FitSchedule.backend.dto.WorkoutPlanDto;
 import com.FitSchedule.backend.entity.WorkoutDay;
 import com.FitSchedule.backend.entity.WorkoutDayExercise;
 import com.FitSchedule.backend.entity.WorkoutPlan;
+import com.FitSchedule.backend.exception.BadRequestException;
 import com.FitSchedule.backend.exception.ResourceNotFoundException;
 import com.FitSchedule.backend.repository.WorkoutPlanRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +28,8 @@ public class WorkoutPlanService {
         List<WorkoutPlan> plans;
         if (userEmail != null && !userEmail.trim().isEmpty()) {
             plans = workoutPlanRepository.findByUserEmailIgnoreCaseOrderByCreatedAtDesc(userEmail.trim());
-            // If user has no specific plans yet, also include plans with null/empty userEmail
-            if (plans.isEmpty()) {
-                plans = workoutPlanRepository.findAllByOrderByCreatedAtDesc();
-            }
         } else {
-            plans = workoutPlanRepository.findAllByOrderByCreatedAtDesc();
+            plans = workoutPlanRepository.findByUserEmailIsNullOrderByCreatedAtDesc();
         }
         return plans.stream()
                 .map(this::mapToDto)
@@ -48,6 +45,10 @@ public class WorkoutPlanService {
 
     @Transactional
     public WorkoutPlanDto createPlan(WorkoutPlanDto dto) {
+        if (dto.getUserEmail() == null || dto.getUserEmail().trim().isEmpty()) {
+            throw new BadRequestException("You must be logged in to create and save a workout plan.");
+        }
+
         WorkoutPlan plan = new WorkoutPlan();
         updatePlanFieldsFromDto(plan, dto);
 
@@ -141,6 +142,7 @@ public class WorkoutPlanService {
                             .exerciseId(ex.getExerciseId())
                             .exerciseName(ex.getExerciseName())
                             .muscleGroup(ex.getMuscleGroup())
+                            .subCategory(ex.getSubCategory())
                             .sets(ex.getSets())
                             .reps(ex.getReps())
                             .restSeconds(ex.getRestSeconds())
@@ -180,6 +182,7 @@ public class WorkoutPlanService {
                         .exerciseId(exDto.getExerciseId())
                         .exerciseName(exDto.getExerciseName())
                         .muscleGroup(exDto.getMuscleGroup())
+                        .subCategory(exDto.getSubCategory())
                         .sets(exDto.getSets() != null ? exDto.getSets() : 3)
                         .reps(exDto.getReps() != null ? exDto.getReps() : "10-12")
                         .restSeconds(exDto.getRestSeconds() != null ? exDto.getRestSeconds() : 60)

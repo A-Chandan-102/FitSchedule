@@ -1,14 +1,30 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import ChangeUsernameModal from './ChangeUsernameModal';
 
 export default function Navbar({
   activeTab,
   setActiveTab,
   planCount,
   currentUser,
-  onOpenAuth,
   onLogout,
+  onUpdateUser,
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isChangeUsernameOpen, setIsChangeUsernameOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const tabToPath = {
+    home: '/',
+    planner: '/planner',
+    'my-workouts': '/my-workouts',
+    schedule: '/schedule',
+    exercises: '/exercises',
+    contact: '/contact',
+    'trainer-portal': '/trainer-portal',
+    login: '/login',
+  };
 
   const navItems = [
     { id: 'home', label: 'Home' },
@@ -25,9 +41,18 @@ export default function Navbar({
   }
 
   const handleNavClick = (tabId) => {
-    setActiveTab(tabId);
+    if (setActiveTab) setActiveTab(tabId);
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    const targetPath = tabToPath[tabId] || '/';
+    navigate(targetPath);
+  };
+
+  const isCurrentActive = (itemId) => {
+    if (activeTab === itemId) return true;
+    const targetPath = tabToPath[itemId];
+    if (targetPath && location.pathname === targetPath) return true;
+    return false;
   };
 
   return (
@@ -39,12 +64,18 @@ export default function Navbar({
       borderBottom: '1px solid var(--border-light)',
       padding: '0.85rem 0',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+      width: '100%',
     }}>
-      <div className="container" style={{
+      {/* Top bar container with expanded wide desktop width */}
+      <div style={{
+        width: '100%',
+        maxWidth: '1680px',
+        margin: '0 auto',
+        padding: '0 2rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '1rem',
+        gap: '1.25rem',
       }}>
         {/* Brand */}
         <div 
@@ -79,7 +110,7 @@ export default function Navbar({
         {/* Desktop Nav */}
         <nav style={{ display: 'none', gap: '0.35rem', alignItems: 'center' }} className="desktop-nav">
           {navItems.map((item) => {
-            const isActive = activeTab === item.id;
+            const isActive = isCurrentActive(item.id);
             const isHighlight = item.highlight;
             return (
               <button
@@ -122,8 +153,29 @@ export default function Navbar({
           {currentUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>
-                  {currentUser.fullName}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.4rem' }}>
+                  <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>
+                    {currentUser.fullName}
+                  </span>
+                  <button
+                    onClick={() => setIsChangeUsernameOpen(true)}
+                    style={{
+                      background: '#f1f5f9',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '4px',
+                      padding: '0.15rem 0.4rem',
+                      fontSize: '0.72rem',
+                      color: '#475569',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}
+                    title="Change Username"
+                  >
+                    ✏️ Edit
+                  </button>
                 </div>
                 <span className={`badge ${currentUser.role === 'TRAINER' ? 'badge-cyan' : 'badge-lime'}`} style={{ fontSize: '0.65rem' }}>
                   {currentUser.role === 'TRAINER' ? 'Certified Trainer' : 'Member'}
@@ -139,8 +191,8 @@ export default function Navbar({
             </div>
           ) : (
             <button
-              className="btn btn-primary btn-sm"
-              onClick={onOpenAuth}
+              className={`btn ${location.pathname === '/login' ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+              onClick={() => handleNavClick('login')}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -180,22 +232,22 @@ export default function Navbar({
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div style={{
-          padding: '1rem 1.5rem',
           backgroundColor: '#ffffff',
-          borderTop: '1px solid var(--border-light)',
+          borderBottom: '1px solid var(--border-light)',
+          padding: '1rem 2rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '0.5rem',
         }}>
           {navItems.map((item) => {
-            const isActive = activeTab === item.id;
+            const isActive = isCurrentActive(item.id);
             return (
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
                 style={{
                   textAlign: 'left',
-                  padding: '0.75rem 1rem',
+                  padding: '0.75rem',
                   borderRadius: 'var(--radius-md)',
                   color: isActive ? '#15803d' : '#0f172a',
                   backgroundColor: isActive ? '#dcfce7' : 'transparent',
@@ -215,21 +267,33 @@ export default function Navbar({
 
           <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
             {currentUser ? (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{currentUser.fullName}</div>
-                  <span className={`badge ${currentUser.role === 'TRAINER' ? 'badge-cyan' : 'badge-lime'}`}>
-                    {currentUser.role}
-                  </span>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{currentUser.fullName}</div>
+                    <span className={`badge ${currentUser.role === 'TRAINER' ? 'badge-cyan' : 'badge-lime'}`}>
+                      {currentUser.role}
+                    </span>
+                  </div>
+                  <button className="btn btn-secondary btn-sm" onClick={onLogout}>
+                    Sign Out
+                  </button>
                 </div>
-                <button className="btn btn-secondary btn-sm" onClick={onLogout}>
-                  Sign Out
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setIsChangeUsernameOpen(true);
+                  }}
+                  style={{ width: '100%', fontSize: '0.8rem', marginTop: '0.25rem' }}
+                >
+                  ✏️ Change Username
                 </button>
               </div>
             ) : (
               <button
                 className="btn btn-primary"
-                onClick={() => { setMobileMenuOpen(false); onOpenAuth(); }}
+                onClick={() => handleNavClick('login')}
                 style={{ width: '100%' }}
               >
                 Login / Sign Up
@@ -238,6 +302,16 @@ export default function Navbar({
           </div>
         </div>
       )}
+
+      {/* Change Username Modal */}
+      <ChangeUsernameModal
+        isOpen={isChangeUsernameOpen}
+        onClose={() => setIsChangeUsernameOpen(false)}
+        currentUser={currentUser}
+        onUpdateSuccess={(updated) => {
+          if (onUpdateUser) onUpdateUser(updated);
+        }}
+      />
 
       <style>{`
         @media (min-width: 960px) {

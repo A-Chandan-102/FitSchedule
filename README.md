@@ -19,7 +19,7 @@
   - [Prerequisites](#prerequisites)
   - [1. Backend Setup (Spring Boot)](#1-backend-setup-spring-boot)
   - [2. Frontend Setup (React + Vite)](#2-frontend-setup-react--vite)
-- [Demo Credentials](#-demo-credentials)
+- [Test Accounts & Trainer Credentials](#-test-accounts--trainer-credentials)
 - [REST API Endpoints](#-rest-api-endpoints)
 
 ---
@@ -308,16 +308,24 @@ ORDER BY submitted_at DESC;
 
 ---
 
-## 🔑 Demo Credentials
+## 🔑 Test Accounts & Trainer Credentials
 
-FitSchedule includes pre-seeded demo accounts with 1-click login buttons in the **Login** modal:
+FitSchedule includes pre-seeded accounts for testing both Member and Trainer roles:
 
-| Role | Email | Password | Access / Capabilities |
-| :--- | :--- | :--- | :--- |
-| **Member** | `member@fitschedule.com` | `password123` | Generate routines, save workouts to account, manage plans, contact coaches. |
-| **Trainer** | `trainer@fitschedule.com` | `trainer123` | Access **Trainer Portal** to review member messages, answer inquiries, and change status. |
+### 🏋️ Member Account
+| Role | Full Name | Email | Password | Access / Capabilities |
+| :--- | :--- | :--- | :--- | :--- |
+| **Member** | Demo Member | `member@fitschedule.com` | `password123` | Generate routines, save workouts to account, manage plans, contact coaches. |
 
-*(You can also use the **Register** tab in the Login modal to create any new custom account.)*
+### 👨‍🏫 The 4 Certified Trainers (Testing Credentials)
+| Trainer Name | Email | Password | Specialization | Access / Role |
+| :--- | :--- | :--- | :--- | :--- |
+| **Marcus Vance** | `marcus.vance@fitschedule.com` *(or `trainer@fitschedule.com`)* | `trainer123` | Strength Development & Powerlifting | Trainer Portal (Review & answer member inquiries) |
+| **Sarah Jenkins** | `sarah.jenkins@fitschedule.com` | `trainer123` | Hypertrophy & Physique Building | Trainer Portal (Review & answer member inquiries) |
+| **David Chen** | `david.chen@fitschedule.com` | `trainer123` | Calisthenics & Joint Mobility | Trainer Portal (Review & answer member inquiries) |
+| **Elena Rostova** | `elena.rostova@fitschedule.com` | `trainer123` | Fat Loss & Metabolic Conditioning | Trainer Portal (Review & answer member inquiries) |
+
+*(You can also use the **Sign Up** tab on the Login page to register new custom Member or Trainer accounts.)*
 
 ---
 
@@ -326,6 +334,7 @@ FitSchedule includes pre-seeded demo accounts with 1-click login buttons in the 
 ### 🔐 Authentication (`/api/auth`)
 - `POST /api/auth/login` – Authenticate user (Member or Trainer)
 - `POST /api/auth/register` – Register a new account
+- `PUT /api/auth/update-username` – Update user display username / full name (persisted in MySQL)
 
 ### 🏋️ Workouts (`/api/workouts`)
 - `POST /api/workouts/generate` – Rule-based routine generation without saving
@@ -336,7 +345,7 @@ FitSchedule includes pre-seeded demo accounts with 1-click login buttons in the 
 - `DELETE /api/workouts/{id}` – Delete a workout plan
 
 ### 📚 Exercise Database (`/api/exercises`)
-- `GET /api/exercises` – Retrieve all 38 exercises
+- `GET /api/exercises` – Retrieve all 80+ exercises across muscle subcategories and cardio
 - `GET /api/exercises/muscle/{muscleGroup}` – Filter exercises by muscle group
 - `GET /api/exercises/{id}` – Get individual exercise details
 

@@ -13,17 +13,6 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
 
   if (!isOpen) return null;
 
-  const handleDemoMember = () => {
-    setEmail('member@fitschedule.com');
-    setPassword('password123');
-    setError('');
-  };
-
-  const handleDemoTrainer = () => {
-    setEmail('trainer@fitschedule.com');
-    setPassword('trainer123');
-    setError('');
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -141,33 +130,6 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
           </div>
         )}
 
-        {/* Demo Fast Login shortcuts */}
-        {activeTab !== 'register' && (
-          <div style={{ marginBottom: '1.25rem', padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', display: 'block', marginBottom: '0.4rem' }}>
-              Quick Fill Demo Credentials:
-            </span>
-            {activeTab === 'member-login' ? (
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={handleDemoMember}
-                style={{ width: '100%', fontSize: '0.82rem' }}
-              >
-                Autofill Demo Member (member@fitschedule.com)
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={handleDemoTrainer}
-                style={{ width: '100%', fontSize: '0.82rem' }}
-              >
-                Autofill Coach Marcus (trainer@fitschedule.com)
-              </button>
-            )}
-          </div>
-        )}
 
         {/* Login Forms */}
         {activeTab !== 'register' ? (
@@ -177,7 +139,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
               <input
                 type="email"
                 className="form-control"
-                placeholder={activeTab === 'trainer-login' ? 'trainer@fitschedule.com' : 'user@example.com'}
+                placeholder={activeTab === 'trainer-login' ? 'trainer@example.com' : 'user@example.com'}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

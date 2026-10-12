@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { exerciseApi } from '../services/api';
 
-const MUSCLE_GROUPS = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core'];
+const MUSCLE_GROUPS = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio'];
 const EQUIPMENTS = ['All', 'Full gym', 'Dumbbells', 'Resistance bands', 'Bodyweight only'];
 
 // Visual illustrations/icons per muscle group
@@ -12,6 +12,7 @@ const MUSCLE_ICONS = {
   Shoulders: '💪',
   Arms: '🦾',
   Core: '🧘',
+  Cardio: '🏃',
   default: '⚡',
 };
 
@@ -46,7 +47,8 @@ export default function ExerciseDatabase({ onSelectExerciseForPlanner, setActive
     const matchesSearch = !searchQuery.trim() ||
       ex.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ex.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ex.muscleGroup?.toLowerCase().includes(searchQuery.toLowerCase());
+      ex.muscleGroup?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ex.subCategory?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesMuscle && matchesEquipment && matchesSearch;
   });
 
@@ -229,7 +231,12 @@ export default function ExerciseDatabase({ onSelectExerciseForPlanner, setActive
                   {ex.name}
                 </h3>
 
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.85rem' }}>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
+                  {ex.subCategory && (
+                    <span className="badge badge-lime" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
+                      Target: {ex.subCategory}
+                    </span>
+                  )}
                   <span className="badge badge-muted" style={{ fontSize: '0.7rem' }}>
                     {ex.category || 'Compound'}
                   </span>

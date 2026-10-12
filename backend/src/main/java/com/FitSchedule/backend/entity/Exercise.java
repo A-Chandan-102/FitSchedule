@@ -22,6 +22,9 @@ public class Exercise {
     @Column(name = "muscle_group", nullable = false, length = 60)
     private String muscleGroup;
 
+    @Column(name = "sub_category", length = 80)
+    private String subCategory;
+
     @Column(length = 60)
     private String category; // e.g. Compound, Isolation, Cardio
 

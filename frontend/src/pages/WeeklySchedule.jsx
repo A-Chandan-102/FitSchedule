@@ -5,6 +5,106 @@ export default function WeeklySchedule({ plans, activePlan, onSelectPlan, onEdit
 
   const currentPlan = activePlan || (plans.length > 0 ? plans[0] : null);
 
+  const handleDownloadTimetable = () => {
+    if (!currentPlan) return;
+    const fileName = `${currentPlan.title.replace(/[^a-zA-Z0-9_-]/g, '_')}_Weekly_Timetable.html`;
+
+    const daysHtml = (currentPlan.days || []).map((day) => {
+      const isRest = day.isRestDay;
+      const exercisesRows = (day.exercises || []).map((ex, i) => `
+        <tr>
+          <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f172a;">${i + 1}. ${ex.exerciseName}</td>
+          <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #0284c7; font-weight: 600;">${ex.subCategory || ex.muscleGroup || '-'}</td>
+          <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #16a34a; text-align: center;">${ex.sets}</td>
+          <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 600; text-align: center;">${ex.reps}</td>
+          <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 0.85em;">${ex.notes || 'Strict execution and progressive overload'}</td>
+        </tr>
+      `).join('');
+
+      return `
+        <div style="margin-bottom: 24px; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <div style="background: ${isRest ? '#f8fafc' : '#dcfce7'}; padding: 14px 20px; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h3 style="margin: 0; color: ${isRest ? '#64748b' : '#15803d'}; font-size: 1.2rem; font-weight: 800;">${day.dayOfWeek} &bull; ${day.title}</h3>
+              <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.9rem;">Focus: ${day.focus}</p>
+            </div>
+            <span style="background: ${isRest ? '#e2e8f0' : '#16a34a'}; color: ${isRest ? '#475569' : '#ffffff'}; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">
+              ${isRest ? 'Rest' : day.estimatedDuration + ' mins'}
+            </span>
+          </div>
+          ${!isRest && day.exercises && day.exercises.length > 0 ? `
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.92rem; text-align: left;">
+              <thead>
+                <tr style="background: #f8fafc; color: #475569; border-bottom: 2px solid #e2e8f0;">
+                  <th style="padding: 10px 14px;">Movement</th>
+                  <th style="padding: 10px 14px;">Target Muscle</th>
+                  <th style="padding: 10px 14px; text-align: center;">Sets</th>
+                  <th style="padding: 10px 14px; text-align: center;">Reps / Time</th>
+                  <th style="padding: 10px 14px;">Coaching Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${exercisesRows}
+              </tbody>
+            </table>
+          ` : `
+            <div style="padding: 16px 20px; color: #64748b; font-size: 0.92rem; font-style: italic;">
+              Rest & Active Recovery day. Focus on light mobility, hydration, and nutritional restoration.
+            </div>
+          `}
+        </div>
+      `;
+    }).join('');
+
+    const docHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${currentPlan.title} - Weekly Timetable</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 36px 20px; }
+    .container { max-width: 940px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 30px; padding-bottom: 24px; border-bottom: 2px solid #e2e8f0; }
+    .title { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 10px 0; }
+    .subtitle { color: #64748b; font-size: 1.05rem; margin: 0; }
+    .badge-bar { display: flex; justify-content: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .badge { padding: 5px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; background: #e2e8f0; color: #334155; }
+    .print-btn { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+    @media print { .print-btn { display: none; } body { padding: 0; background: #ffffff; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="print-btn" onclick="window.print()">🖨️ Print Timetable / Save to PDF</button>
+    <div class="header">
+      <h1 class="title">${currentPlan.title}</h1>
+      <p class="subtitle">Official Weekly Training Timetable Document</p>
+      <div class="badge-bar">
+        <span class="badge" style="background: #dcfce7; color: #15803d;">Goal: ${currentPlan.fitnessGoal}</span>
+        <span class="badge" style="background: #e0f2fe; color: #0369a1;">Split: ${currentPlan.trainingSplit}</span>
+        <span class="badge">Session: ${currentPlan.workoutDuration} mins</span>
+        <span class="badge">Equipment: ${currentPlan.equipment}</span>
+      </div>
+    </div>
+    ${daysHtml}
+    <div style="text-align: center; margin-top: 36px; color: #94a3b8; font-size: 0.88rem;">
+      Generated by FitSchedule &bull; ${new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+    </div>
+  </div>
+</body>
+</html>`;
+
+    const blob = new Blob([docHtml], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="container" style={{ paddingTop: '2.5rem' }}>
       {/* Top Header */}
@@ -82,12 +182,27 @@ export default function WeeklySchedule({ plans, activePlan, onSelectPlan, onEdit
               </div>
             </div>
 
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={() => onEditPlan(currentPlan)}
-            >
-              ✏️ Modify Schedule
-            </button>
+            <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={handleDownloadTimetable}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}
+                title="Download weekly schedule timetable document to your device"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download Timetable
+              </button>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => onEditPlan(currentPlan)}
+              >
+                ✏️ Modify Schedule
+              </button>
+            </div>
           </div>
 
           {/* 7-Day Calendar Grid */}

@@ -10,4 +10,5 @@ import java.util.List;
 public interface WorkoutPlanRepository extends JpaRepository<WorkoutPlan, Long> {
     List<WorkoutPlan> findAllByOrderByCreatedAtDesc();
     List<WorkoutPlan> findByUserEmailIgnoreCaseOrderByCreatedAtDesc(String userEmail);
+    List<WorkoutPlan> findByUserEmailIsNullOrderByCreatedAtDesc();
 }

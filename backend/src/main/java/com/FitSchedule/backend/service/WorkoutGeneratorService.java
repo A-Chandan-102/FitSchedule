@@ -76,6 +76,27 @@ public class WorkoutGeneratorService {
                         request.getTargetMuscleGroups()
                 );
 
+                // For Fat Loss goal, append dedicated time-based cardio finisher
+                if (request.getFitnessGoal() != null && request.getFitnessGoal().equalsIgnoreCase("Fat loss")) {
+                    List<Exercise> cardioPool = allExercises.stream()
+                            .filter(e -> "Cardio".equalsIgnoreCase(e.getMuscleGroup()))
+                            .collect(Collectors.toList());
+                    if (!cardioPool.isEmpty()) {
+                        Exercise cardioEx = cardioPool.get((trainingDayIndex - 1) % cardioPool.size());
+                        dayExercises.add(WorkoutDayExerciseDto.builder()
+                                .exerciseId(cardioEx.getId())
+                                .exerciseName(cardioEx.getName())
+                                .muscleGroup(cardioEx.getMuscleGroup())
+                                .subCategory(cardioEx.getSubCategory())
+                                .sets(1)
+                                .reps(cardioEx.getDefaultReps() != null ? cardioEx.getDefaultReps() : "25-30 mins")
+                                .restSeconds(60)
+                                .orderIndex(dayExercises.size() + 1)
+                                .notes(cardioEx.getDescription())
+                                .build());
+                    }
+                }
+
                 WorkoutDayDto dayDto = WorkoutDayDto.builder()
                         .dayOfWeek(dayName)
                         .dayOrder(i + 1)
@@ -318,6 +339,7 @@ public class WorkoutGeneratorService {
                             .exerciseId(ex.getId())
                             .exerciseName(ex.getName())
                             .muscleGroup(ex.getMuscleGroup())
+                            .subCategory(ex.getSubCategory())
                             .sets(repSetRule.sets)
                             .reps(repSetRule.reps)
                             .restSeconds(repSetRule.restSeconds)
@@ -339,6 +361,7 @@ public class WorkoutGeneratorService {
                         .exerciseId(ex.getId())
                         .exerciseName(ex.getName())
                         .muscleGroup(ex.getMuscleGroup())
+                        .subCategory(ex.getSubCategory())
                         .sets(repSetRule.sets)
                         .reps(repSetRule.reps)
                         .restSeconds(repSetRule.restSeconds)
