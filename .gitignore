@@ -1,0 +1,20 @@
+# Build outputs
+**/target/
+**/dist/
+**/dist-ssr/
+
+# Dependency directories
+**/node_modules/
+
+# Environment files and credentials
+**/.env
+**/.env.local
+**/.env.*.local
+
+# IDE and OS files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+*.log
