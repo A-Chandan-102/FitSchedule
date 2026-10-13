@@ -29,7 +29,7 @@ public class User {
 
     @Column(nullable = false, length = 30)
     @Builder.Default
-    private String role = "MEMBER"; // MEMBER or TRAINER
+    private String role = "MEMBER"; // MEMBER, TRAINER, or ADMIN
 
     @Column(length = 120)
     private String specialization;

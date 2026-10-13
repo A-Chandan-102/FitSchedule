@@ -31,8 +31,15 @@ public class Trainer {
     @Column(length = 120)
     private String email;
 
+    @Column(length = 100)
+    private String password;
+
     private Double rating;
 
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
+
+    @Column(name = "is_verified")
+    @Builder.Default
+    private Boolean isVerified = true;
 }

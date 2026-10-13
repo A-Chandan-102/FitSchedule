@@ -33,6 +33,8 @@ FitSchedule solves the problem of generic, one-size-fits-all workout templates b
 4. **Trainer Directory & Inquiries**: Allows members to review certified coaches, view their specializations, and send direct questions or consultation requests.
 5. **Trainer Management Portal**: Trainers can log in to a dedicated portal to view incoming messages from members and track inquiry status (`SUBMITTED`, `REVIEWED`, `ANSWERED`).
 6. **Account & Plan Persistence**: Members can sign in, save generated plans to their account, edit routines (change exercises, sets, reps), and access their saved workouts from any session.
+7. **Administrator Coach Onboarding**: Administrators manage the trainer roster via a dedicated **Admin Portal** — adding certified coaches with their expertise, years of experience, email, bio, and login password, or removing them. Unverified trainers cannot log in.
+8. **Slide-in Settings Drawer**: Replaces static navbar controls with a single ⚙️ **Settings** button opening a sidebar to update usernames, change Gmail addresses, and sign out.
 
 ---
 
@@ -53,9 +55,11 @@ FitSchedule solves the problem of generic, one-size-fits-all workout templates b
   - Profiles for certified trainers displaying name, specialization, experience years, star rating, bio, and avatar.
   - Dedicated consultation form linked to the selected coach.
 - **Authentication & Roles**:
-  - User roles: `MEMBER` and `TRAINER`.
-  - 1-click Quick Demo Login buttons for fast testing and demonstrations.
-  - Trainer-only navigation link to **Trainer Portal** for inquiry tracking.
+  - User roles: `MEMBER`, `TRAINER`, and `ADMIN`.
+  - **Trainer Verification & Backend-Only Onboarding**: Trainers cannot self-register via the sign-up form. They must be added into the database from the backend or through the Admin Portal. Unverified trainers are strictly blocked from logging in.
+  - **Admin Portal (`ADMIN` Role)**: Administrators can view all certified coaches, add new trainers (with experience, email, specialization/expertise, and placeholder password), and remove trainers.
+  - **Account Settings Sidebar**: Replaces static navbar buttons with an interactive ⚙️ **Settings** button opening a smooth right-side drawer with **Change Username**, **Change Gmail**, and **Sign Out**.
+  - Role-specific navigation links: **Trainer Portal** for coaches, **Admin Portal** for administrators.
 
 ---
 
@@ -165,10 +169,10 @@ FitSchedule uses a MySQL relational database named `fitschedule`. Tables are man
    -- View all seeded exercises
    SELECT id, name, muscle_group, equipment, category FROM exercises;
 
-   -- View certified trainers
-   SELECT id, name, specialization, email, rating FROM trainers;
+   -- View certified trainers (with experience and verification status)
+   SELECT id, name, specialization, experience_years, email, is_verified, rating FROM trainers;
 
-   -- View registered users
+   -- View registered users (including ADMIN, TRAINER, and MEMBER roles)
    SELECT id, full_name, email, role FROM users;
 
    -- View user-generated workout plans
@@ -206,9 +210,9 @@ FitSchedule structures its data across 7 relational tables:
 +-------------------------------------------------------------+
 |                        fitschedule                          |
 +-------------------------------------------------------------+
-| 1. users                  - Registered members & trainers   |
-| 2. trainers               - Certified trainer roster & bios |
-| 3. exercises              - 38 seeded movements with cues   |
+| 1. users                  - Registered members, trainers & admin   |
+| 2. trainers               - Certified trainer roster, bios & auth   |
+| 3. exercises              - 38 seeded movements with cues          |
 | 4. workout_plans          - Saved custom user workout plans |
 | 5. workout_days           - Split days (Day 1: Push, etc.)  |
 | 6. workout_day_exercises  - Junction of exercises per day   |
@@ -312,12 +316,14 @@ ORDER BY submitted_at DESC;
 
 FitSchedule includes pre-seeded accounts for testing both Member and Trainer roles:
 
-### 🏋️ Member Account
+### 👑 Administrator Account
 | Role | Full Name | Email | Password | Access / Capabilities |
 | :--- | :--- | :--- | :--- | :--- |
-| **Member** | Demo Member | `member@fitschedule.com` | `password123` | Generate routines, save workouts to account, manage plans, contact coaches. |
+| **Admin** | Demo Admin | `member@fitschedule.com` | `password123` | Full administrator rights: access to **Admin Portal**, view all trainers, onboard/add new coaches (with years of experience, email, specialization, placeholder password, and bio), and remove trainers from the database. |
 
-### 👨‍🏫 The 4 Certified Trainers (Testing Credentials)
+### 👨‍🏫 Certified Trainers (Backend-Managed Credentials)
+> ⚠️ **Trainer Onboarding Policy**: Trainers **cannot** sign up via the registration page. They must be added to the database from the backend or by an administrator. Unverified trainers are blocked from logging in.
+
 | Trainer Name | Email | Password | Specialization | Access / Role |
 | :--- | :--- | :--- | :--- | :--- |
 | **Marcus Vance** | `marcus.vance@fitschedule.com` *(or `trainer@fitschedule.com`)* | `trainer123` | Strength Development & Powerlifting | Trainer Portal (Review & answer member inquiries) |
@@ -325,16 +331,29 @@ FitSchedule includes pre-seeded accounts for testing both Member and Trainer rol
 | **David Chen** | `david.chen@fitschedule.com` | `trainer123` | Calisthenics & Joint Mobility | Trainer Portal (Review & answer member inquiries) |
 | **Elena Rostova** | `elena.rostova@fitschedule.com` | `trainer123` | Fat Loss & Metabolic Conditioning | Trainer Portal (Review & answer member inquiries) |
 
-*(You can also use the **Sign Up** tab on the Login page to register new custom Member or Trainer accounts.)*
+### ⚙️ Account Settings Sidebar
+Instead of cluttering the navbar with inline buttons, click the **⚙️ Settings** icon in the top navigation bar to open the slide-in sidebar:
+- **Change Username**: Update display name across sessions.
+- **Change Gmail**: Safely update your login email address.
+- **Sign Out**: Clear session and log out.
+
+*(Members can register custom accounts on the **Sign Up** tab. Trainer registrations are disabled.)*
 
 ---
 
 ## 📡 REST API Endpoints
 
-### 🔐 Authentication (`/api/auth`)
-- `POST /api/auth/login` – Authenticate user (Member or Trainer)
-- `POST /api/auth/register` – Register a new account
-- `PUT /api/auth/update-username` – Update user display username / full name (persisted in MySQL)
+### 🔐 Authentication & Account Management (`/api/auth`)
+- `POST /api/auth/login` – Authenticate user (Member, Trainer, or Admin). Blocks unverified trainers.
+- `POST /api/auth/register` – Register a new member account (trainers cannot self-register)
+- `PUT /api/auth/update-username` – Update user display name (persisted in MySQL)
+- `PUT /api/auth/update-email` – Update user email / Gmail address (persisted in MySQL)
+
+### 👑 Admin Trainer Management (`/api/auth/admin`)
+*(Protected endpoints: require `X-Admin-Email` request header from an `ADMIN` account)*
+- `GET /api/auth/admin/trainers` – Retrieve all trainers with credentials and details
+- `POST /api/auth/admin/trainers` – Add new trainer with name, email, specialization, experience, password, bio, avatar
+- `DELETE /api/auth/admin/trainers/{id}` – Remove trainer from both directory and user login accounts
 
 ### 🏋️ Workouts (`/api/workouts`)
 - `POST /api/workouts/generate` – Rule-based routine generation without saving

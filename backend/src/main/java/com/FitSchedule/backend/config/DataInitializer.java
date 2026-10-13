@@ -713,6 +713,7 @@ public class DataInitializer implements CommandLineRunner {
                             .specialization("Strength Development & Powerlifting")
                             .experienceYears(8)
                             .email("marcus.vance@fitschedule.com")
+                            .password("trainer123")
                             .rating(4.9)
                             .bio("CSCS certified strength coach specializing in heavy compound periodization and powerlifting biomechanics.")
                             .avatarUrl("https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=200&fit=crop&crop=face")
@@ -722,6 +723,7 @@ public class DataInitializer implements CommandLineRunner {
                             .specialization("Hypertrophy & Physique Building")
                             .experienceYears(6)
                             .email("sarah.jenkins@fitschedule.com")
+                            .password("trainer123")
                             .rating(4.95)
                             .bio("Exercise science specialist focused on muscle hypertrophy, progressive overload volume, and aesthetic proportion.")
                             .avatarUrl("https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&fit=crop&crop=face")
@@ -731,6 +733,7 @@ public class DataInitializer implements CommandLineRunner {
                             .specialization("Calisthenics & Joint Mobility")
                             .experienceYears(5)
                             .email("david.chen@fitschedule.com")
+                            .password("trainer123")
                             .rating(4.85)
                             .bio("Bodyweight gymnastics and mobility expert helping athletes build bulletproof joints and elite relative strength.")
                             .avatarUrl("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&fit=crop&crop=face")
@@ -740,15 +743,33 @@ public class DataInitializer implements CommandLineRunner {
                             .specialization("Fat Loss & Metabolic Conditioning")
                             .experienceYears(7)
                             .email("elena.rostova@fitschedule.com")
+                            .password("trainer123")
                             .rating(4.9)
                             .bio("High-intensity conditioning and sustainable fat loss coach specializing in metabolic work capacity.")
                             .avatarUrl("https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&fit=crop&crop=face")
                             .build()
             );
             trainerRepository.saveAll(trainers);
+        } else {
+            // Ensure existing trainers have password and isVerified set
+            trainerRepository.findAll().forEach(t -> {
+                boolean changed = false;
+                if (t.getPassword() == null || t.getPassword().isBlank()) {
+                    t.setPassword("trainer123");
+                    changed = true;
+                }
+                if (t.getIsVerified() == null) {
+                    t.setIsVerified(true);
+                    changed = true;
+                }
+                if (changed) {
+                    trainerRepository.save(t);
+                }
+            });
         }
 
-        seedUserIfNotExists("Demo Member", "member@fitschedule.com", "password123", "MEMBER", null);
+        // Admin account (was Demo Member – now site administrator)
+        seedUserIfNotExists("Demo Admin", "member@fitschedule.com", "password123", "ADMIN", null);
         seedUserIfNotExists("Marcus Vance", "marcus.vance@fitschedule.com", "trainer123", "TRAINER", "Strength Development & Powerlifting");
         seedUserIfNotExists("Marcus Vance (Coach)", "trainer@fitschedule.com", "trainer123", "TRAINER", "Strength Development & Powerlifting");
         seedUserIfNotExists("Sarah Jenkins", "sarah.jenkins@fitschedule.com", "trainer123", "TRAINER", "Hypertrophy & Physique Building");
@@ -757,14 +778,24 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedUserIfNotExists(String fullName, String email, String password, String role, String specialization) {
-        if (!userRepository.existsByEmailIgnoreCase(email)) {
-            userRepository.save(User.builder()
-                    .fullName(fullName)
-                    .email(email)
-                    .password(password)
-                    .role(role)
-                    .specialization(specialization)
-                    .build());
-        }
+        userRepository.findByEmailIgnoreCase(email).ifPresentOrElse(
+                user -> {
+                    // If member@fitschedule.com exists with old MEMBER role, elevate to ADMIN
+                    if ("member@fitschedule.com".equalsIgnoreCase(email) && !"ADMIN".equalsIgnoreCase(user.getRole())) {
+                        user.setRole("ADMIN");
+                        user.setFullName(fullName);
+                        userRepository.save(user);
+                    }
+                },
+                () -> {
+                    userRepository.save(User.builder()
+                            .fullName(fullName)
+                            .email(email)
+                            .password(password)
+                            .role(role)
+                            .specialization(specialization)
+                            .build());
+                }
+        );
     }
 }

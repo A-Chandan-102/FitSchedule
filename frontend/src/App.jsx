@@ -12,6 +12,7 @@ import WeeklySchedule from './pages/WeeklySchedule';
 import ContactTrainer from './pages/ContactTrainer';
 import ExerciseDatabase from './pages/ExerciseDatabase';
 import TrainerDashboard from './pages/TrainerDashboard';
+import AdminPortal from './pages/AdminPortal';
 import Login from './pages/Login';
 import { workoutApi } from './services/api';
 
@@ -44,6 +45,7 @@ export default function App() {
     exercises: '/exercises',
     contact: '/contact',
     'trainer-portal': '/trainer-portal',
+    'admin-portal': '/admin-portal',
     'workout-details': '/workout-details',
     'edit-workout': '/edit-workout',
     login: '/login',
@@ -57,6 +59,7 @@ export default function App() {
     '/exercises': 'exercises',
     '/contact': 'contact',
     '/trainer-portal': 'trainer-portal',
+    '/admin-portal': 'admin-portal',
     '/workout-details': 'workout-details',
     '/edit-workout': 'edit-workout',
     '/login': 'login',
@@ -291,6 +294,14 @@ export default function App() {
             path="/trainer-portal"
             element={
               <TrainerDashboard
+                currentUser={currentUser}
+              />
+            }
+          />
+          <Route
+            path="/admin-portal"
+            element={
+              <AdminPortal
                 currentUser={currentUser}
               />
             }

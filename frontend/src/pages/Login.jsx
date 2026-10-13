@@ -8,8 +8,6 @@ export default function Login({ currentUser, onAuthSuccess, onLogout, setActiveT
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState('MEMBER');
-  const [specialization, setSpecialization] = useState('Strength & Conditioning');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -24,6 +22,9 @@ export default function Login({ currentUser, onAuthSuccess, onLogout, setActiveT
       if (res.role === 'TRAINER') {
         if (setActiveTab) setActiveTab('trainer-portal');
         navigate('/trainer-portal');
+      } else if (res.role === 'ADMIN') {
+        if (setActiveTab) setActiveTab('admin-portal');
+        navigate('/admin-portal');
       } else {
         if (setActiveTab) setActiveTab('my-workouts');
         navigate('/my-workouts');
@@ -44,17 +45,11 @@ export default function Login({ currentUser, onAuthSuccess, onLogout, setActiveT
         fullName,
         email,
         password,
-        role,
-        specialization: role === 'TRAINER' ? specialization : null,
+        role: 'MEMBER',
       });
       onAuthSuccess(res);
-      if (res.role === 'TRAINER') {
-        if (setActiveTab) setActiveTab('trainer-portal');
-        navigate('/trainer-portal');
-      } else {
-        if (setActiveTab) setActiveTab('planner');
-        navigate('/planner');
-      }
+      if (setActiveTab) setActiveTab('planner');
+      navigate('/planner');
     } catch (err) {
       setError(err.message || 'Registration failed.');
     } finally {
@@ -71,8 +66,8 @@ export default function Login({ currentUser, onAuthSuccess, onLogout, setActiveT
             width: '60px',
             height: '60px',
             borderRadius: '50%',
-            backgroundColor: currentUser.role === 'TRAINER' ? '#e0f2fe' : '#dcfce7',
-            color: currentUser.role === 'TRAINER' ? '#0369a1' : '#15803d',
+            backgroundColor: currentUser.role === 'TRAINER' ? '#e0f2fe' : currentUser.role === 'ADMIN' ? '#fef3c7' : '#dcfce7',
+            color: currentUser.role === 'TRAINER' ? '#0369a1' : currentUser.role === 'ADMIN' ? '#92400e' : '#15803d',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -83,8 +78,8 @@ export default function Login({ currentUser, onAuthSuccess, onLogout, setActiveT
             {currentUser.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U'}
           </div>
 
-          <span className={`badge ${currentUser.role === 'TRAINER' ? 'badge-cyan' : 'badge-lime'}`} style={{ marginBottom: '0.65rem' }}>
-            {currentUser.role === 'TRAINER' ? 'Coach Account' : 'Member Account'}
+          <span className={`badge ${currentUser.role === 'TRAINER' ? 'badge-cyan' : currentUser.role === 'ADMIN' ? 'badge-amber' : 'badge-lime'}`} style={{ marginBottom: '0.65rem' }}>
+            {currentUser.role === 'TRAINER' ? 'Coach Account' : currentUser.role === 'ADMIN' ? 'Administrator' : 'Member Account'}
           </span>
 
           <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>
@@ -105,6 +100,17 @@ export default function Login({ currentUser, onAuthSuccess, onLogout, setActiveT
                 }}
               >
                 Go to Trainer Portal
+              </button>
+            ) : currentUser.role === 'ADMIN' ? (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  if (setActiveTab) setActiveTab('admin-portal');
+                  navigate('/admin-portal');
+                }}
+              >
+                Go to Admin Portal
               </button>
             ) : (
               <button
@@ -153,7 +159,7 @@ export default function Login({ currentUser, onAuthSuccess, onLogout, setActiveT
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '420px', margin: '0 auto' }}>
           {mode === 'register'
-            ? 'Create your free account to generate personalized routines and track workout plans.'
+            ? 'Create your free member account to generate personalized routines and track workout plans.'
             : mode === 'trainer-login'
             ? 'Sign in to access your coaching inquiries and client messages.'
             : 'Access your private customized workout routines and weekly schedule.'}
@@ -237,7 +243,7 @@ export default function Login({ currentUser, onAuthSuccess, onLogout, setActiveT
           </div>
         )}
 
-        {/* Login Form */}
+        {/* Login Form (Member or Trainer) */}
         {mode !== 'register' ? (
           <form onSubmit={handleLogin}>
             <div className="form-group">
@@ -300,13 +306,32 @@ export default function Login({ currentUser, onAuthSuccess, onLogout, setActiveT
                 onClick={() => { setMode('register'); setError(''); }}
                 style={{ color: '#16a34a', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none' }}
               >
-                Create one here
+                Create member account
               </button>
             </div>
           </form>
         ) : (
-          /* Registration Form */
+          /* Registration Form – Members only */
           <form onSubmit={handleRegister}>
+            {/* Info banner */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '0.5rem',
+              backgroundColor: '#fffbeb',
+              border: '1px solid #fcd34d',
+              borderRadius: 'var(--radius-md)',
+              padding: '0.65rem 0.85rem',
+              marginBottom: '1.5rem',
+              fontSize: '0.82rem',
+              color: '#92400e',
+            }}>
+              <svg width="16" height="16" style={{ flexShrink: 0, marginTop: '1px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>Trainer accounts are added to the database by an administrator. Only <strong>Member</strong> accounts can be created here.</span>
+            </div>
+
             <div className="form-group">
               <label className="form-label">Full Name</label>
               <input
@@ -331,57 +356,6 @@ export default function Login({ currentUser, onAuthSuccess, onLogout, setActiveT
                 autoComplete="email"
               />
             </div>
-
-            <div className="form-group">
-              <label className="form-label">Account Role</label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  type="button"
-                  onClick={() => setRole('MEMBER')}
-                  style={{
-                    flex: 1,
-                    padding: '0.65rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: role === 'MEMBER' ? '2px solid #16a34a' : '1px solid var(--border-light)',
-                    backgroundColor: role === 'MEMBER' ? '#dcfce7' : '#ffffff',
-                    color: role === 'MEMBER' ? '#15803d' : '#475569',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Fitness Member
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('TRAINER')}
-                  style={{
-                    flex: 1,
-                    padding: '0.65rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: role === 'TRAINER' ? '2px solid #0284c7' : '1px solid var(--border-light)',
-                    backgroundColor: role === 'TRAINER' ? '#e0f2fe' : '#ffffff',
-                    color: role === 'TRAINER' ? '#0369a1' : '#475569',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Certified Trainer
-                </button>
-              </div>
-            </div>
-
-            {role === 'TRAINER' && (
-              <div className="form-group">
-                <label className="form-label">Coaching Specialization</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="e.g. Hypertrophy, Mobility, Powerlifting"
-                  value={specialization}
-                  onChange={(e) => setSpecialization(e.target.value)}
-                />
-              </div>
-            )}
 
             <div className="form-group">
               <label className="form-label">Password (min 6 characters)</label>
@@ -409,7 +383,7 @@ export default function Login({ currentUser, onAuthSuccess, onLogout, setActiveT
                   Creating Account...
                 </>
               ) : (
-                'Create Account'
+                'Create Member Account'
               )}
             </button>
 

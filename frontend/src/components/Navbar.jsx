@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import ChangeUsernameModal from './ChangeUsernameModal';
+import SettingsSidebar from './SettingsSidebar';
 
 export default function Navbar({
   activeTab,
@@ -11,7 +11,7 @@ export default function Navbar({
   onUpdateUser,
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isChangeUsernameOpen, setIsChangeUsernameOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,6 +23,7 @@ export default function Navbar({
     exercises: '/exercises',
     contact: '/contact',
     'trainer-portal': '/trainer-portal',
+    'admin-portal': '/admin-portal',
     login: '/login',
   };
 
@@ -35,9 +36,12 @@ export default function Navbar({
     { id: 'contact', label: 'Contact a Trainer' },
   ];
 
-  // Add Trainer Portal tab if logged in as TRAINER
+  // Add role-specific nav items
   if (currentUser && currentUser.role === 'TRAINER') {
     navItems.push({ id: 'trainer-portal', label: 'Trainer Portal', highlight: true });
+  }
+  if (currentUser && currentUser.role === 'ADMIN') {
+    navItems.push({ id: 'admin-portal', label: 'Admin Portal', highlight: true, adminHighlight: true });
   }
 
   const handleNavClick = (tabId) => {
@@ -55,6 +59,18 @@ export default function Navbar({
     return false;
   };
 
+  const roleLabel = currentUser
+    ? currentUser.role === 'TRAINER' ? 'Certified Trainer'
+    : currentUser.role === 'ADMIN' ? 'Administrator'
+    : 'Member'
+    : '';
+
+  const roleBadgeClass = currentUser
+    ? currentUser.role === 'TRAINER' ? 'badge-cyan'
+    : currentUser.role === 'ADMIN' ? 'badge-amber'
+    : 'badge-lime'
+    : '';
+
   return (
     <header style={{
       position: 'sticky',
@@ -66,7 +82,6 @@ export default function Navbar({
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
       width: '100%',
     }}>
-      {/* Top bar container with expanded wide desktop width */}
       <div style={{
         width: '100%',
         maxWidth: '1680px',
@@ -78,7 +93,7 @@ export default function Navbar({
         gap: '1.25rem',
       }}>
         {/* Brand */}
-        <div 
+        <div
           onClick={() => handleNavClick('home')}
           style={{
             display: 'flex',
@@ -112,6 +127,7 @@ export default function Navbar({
           {navItems.map((item) => {
             const isActive = isCurrentActive(item.id);
             const isHighlight = item.highlight;
+            const isAdmin = item.adminHighlight;
             return (
               <button
                 key={item.id}
@@ -121,9 +137,15 @@ export default function Navbar({
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.9rem',
                   fontWeight: isActive ? 700 : 500,
-                  color: isActive ? (isHighlight ? '#0369a1' : '#15803d') : (isHighlight ? '#0284c7' : '#475569'),
-                  backgroundColor: isActive ? (isHighlight ? '#e0f2fe' : '#dcfce7') : 'transparent',
-                  border: isActive ? `1px solid ${isHighlight ? '#bae6fd' : '#bbf7d0'}` : '1px solid transparent',
+                  color: isActive
+                    ? isAdmin ? '#92400e' : isHighlight ? '#0369a1' : '#15803d'
+                    : isAdmin ? '#b45309' : isHighlight ? '#0284c7' : '#475569',
+                  backgroundColor: isActive
+                    ? isAdmin ? '#fef3c7' : isHighlight ? '#e0f2fe' : '#dcfce7'
+                    : 'transparent',
+                  border: isActive
+                    ? `1px solid ${isAdmin ? '#fcd34d' : isHighlight ? '#bae6fd' : '#bbf7d0'}`
+                    : '1px solid transparent',
                   transition: 'all var(--transition-fast)',
                   display: 'flex',
                   alignItems: 'center',
@@ -151,42 +173,43 @@ export default function Navbar({
         {/* User Auth Info / Login CTA */}
         <div style={{ display: 'none', alignItems: 'center', gap: '0.75rem' }} className="desktop-auth">
           {currentUser ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              {/* User info */}
               <div style={{ textAlign: 'right' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.4rem' }}>
-                  <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>
-                    {currentUser.fullName}
-                  </span>
-                  <button
-                    onClick={() => setIsChangeUsernameOpen(true)}
-                    style={{
-                      background: '#f1f5f9',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '4px',
-                      padding: '0.15rem 0.4rem',
-                      fontSize: '0.72rem',
-                      color: '#475569',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.2rem',
-                    }}
-                    title="Change Username"
-                  >
-                    ✏️ Edit
-                  </button>
+                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>
+                  {currentUser.fullName}
                 </div>
-                <span className={`badge ${currentUser.role === 'TRAINER' ? 'badge-cyan' : 'badge-lime'}`} style={{ fontSize: '0.65rem' }}>
-                  {currentUser.role === 'TRAINER' ? 'Certified Trainer' : 'Member'}
+                <span className={`badge ${roleBadgeClass}`} style={{ fontSize: '0.65rem' }}>
+                  {roleLabel}
                 </span>
               </div>
+
+              {/* ⚙️ Settings button */}
               <button
-                className="btn btn-secondary btn-sm"
-                onClick={onLogout}
-                style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
+                id="settings-btn"
+                onClick={() => setIsSettingsOpen(true)}
+                title="Account Settings"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '8px',
+                  backgroundColor: '#f1f5f9',
+                  border: '1px solid #e2e8f0',
+                  cursor: 'pointer',
+                  color: '#475569',
+                  transition: 'all 0.15s',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#e2e8f0'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
               >
-                Sign Out
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
               </button>
             </div>
           ) : (
@@ -271,23 +294,19 @@ export default function Navbar({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <div>
                     <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{currentUser.fullName}</div>
-                    <span className={`badge ${currentUser.role === 'TRAINER' ? 'badge-cyan' : 'badge-lime'}`}>
-                      {currentUser.role}
-                    </span>
+                    <span className={`badge ${roleBadgeClass}`}>{roleLabel}</span>
                   </div>
-                  <button className="btn btn-secondary btn-sm" onClick={onLogout}>
-                    Sign Out
-                  </button>
                 </div>
                 <button
                   className="btn btn-secondary btn-sm"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setIsChangeUsernameOpen(true);
-                  }}
-                  style={{ width: '100%', fontSize: '0.8rem', marginTop: '0.25rem' }}
+                  onClick={() => { setMobileMenuOpen(false); setIsSettingsOpen(true); }}
+                  style={{ width: '100%', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
                 >
-                  ✏️ Change Username
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                  </svg>
+                  Account Settings
                 </button>
               </div>
             ) : (
@@ -303,14 +322,15 @@ export default function Navbar({
         </div>
       )}
 
-      {/* Change Username Modal */}
-      <ChangeUsernameModal
-        isOpen={isChangeUsernameOpen}
-        onClose={() => setIsChangeUsernameOpen(false)}
+      {/* Settings Sidebar */}
+      <SettingsSidebar
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
         currentUser={currentUser}
-        onUpdateSuccess={(updated) => {
+        onUpdateUser={(updated) => {
           if (onUpdateUser) onUpdateUser(updated);
         }}
+        onLogout={onLogout}
       />
 
       <style>{`
@@ -318,6 +338,18 @@ export default function Navbar({
           .desktop-nav { display: flex !important; }
           .desktop-auth { display: flex !important; }
           .mobile-hamburger-btn { display: none !important; }
+        }
+        .badge-amber {
+          background-color: #fef3c7;
+          color: #92400e;
+          border: 1px solid #fcd34d;
+          display: inline-flex;
+          align-items: center;
+          padding: 0.15rem 0.55rem;
+          border-radius: 20px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.03em;
         }
       `}</style>
     </header>

@@ -60,6 +60,28 @@ export const authApi = {
     method: 'PUT',
     body: JSON.stringify({ email, newUsername }),
   }),
+
+  updateEmail: (currentEmail, newEmail) => request('/auth/update-email', {
+    method: 'PUT',
+    body: JSON.stringify({ currentEmail, newEmail }),
+  }),
+
+  // Admin-only trainer management
+  addTrainer: (adminEmail, trainerData) => request('/auth/admin/trainers', {
+    method: 'POST',
+    headers: { 'X-Admin-Email': adminEmail },
+    body: JSON.stringify(trainerData),
+  }),
+
+  removeTrainer: (adminEmail, trainerId) => request(`/auth/admin/trainers/${trainerId}`, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Email': adminEmail },
+  }),
+
+  getAdminTrainers: (adminEmail) => request('/auth/admin/trainers', {
+    method: 'GET',
+    headers: { 'X-Admin-Email': adminEmail },
+  }),
 };
 
 export const workoutApi = {
